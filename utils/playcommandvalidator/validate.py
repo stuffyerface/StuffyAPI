@@ -1,3 +1,5 @@
+import os
+
 import requests
 import logging
 import json
@@ -14,7 +16,7 @@ def main():
             return
         
         resource = resource_response.json()
-        file_path = "../../apis/playcommands.json"
+        file_path = "./apis/playcommands.json"
         with open(file_path, 'r') as file:
             games = json.load(file)
         
@@ -25,14 +27,26 @@ def main():
         gameIDs = []
         modeIDs = {}
         
-        for x in games["gameData"]:
-            gameID = x.get("game", "")
+        for gameObject in games["gameData"]:
+            gameID = gameObject.get("game", "")
             if not gameID:
-                logging.warning(f"Invalid game ID in play commands: {x}")
+                logging.warning(f"Invalid game ID in play commands: {gameObject}")
                 continue
             
             gameIDs.append(gameID)
-            modes = x.get("modes", [])
+            modes = gameObject.get("modes", [])
+            for mode in modes:
+                if mode.get("modeName", "") == "":
+                    logging.warning(f"Invalid mode name (id) in play commands for game '{gameID}': {mode}")
+                    continue
+                if mode.get("name", "") == "":
+                    logging.warning(f"Missing mode coloquial name in play commands for game '{gameID}': {mode}")
+                    continue
+                if mode.get("identifier", "") == "":
+                    if not mode.get("requirements", {}).get("unavailable", False):
+                        logging.warning(f"Missing mode identifier (playcommand) in play commands for game '{gameID}': {mode}")
+                        continue
+                modeIDs.setdefault(gameID, {})[mode.get("modeName", "")] = mode.get("name", "")
             modeIDs[gameID] = {y.get("modeName", ""): y.get("name", "") for y in modes}
         
         logging.debug(f"Loaded game IDs: {gameIDs}")

@@ -5,7 +5,7 @@ import time
 logging.basicConfig(level=logging.WARNING)
 
 def main():
-  file_path = "../../apis/playcommands.json"
+  file_path = "./apis/playcommands.json"
   logging.debug("Loading file")
   with open(file_path, 'r') as file:
     data = json.load(file)
@@ -18,7 +18,7 @@ def main():
       if "modeName" not in mode:
         logging.warn(f"No modeName found for `{mode}`")
       
-      elif "identifier" in mode:
+      elif "identifier" in mode and mode["identifier"] != None:
         currID = mode["identifier"]
         logging.debug(f"Identifier `{currID}` for `{mode["modeName"]}`")
         if(currID in commandsList):
